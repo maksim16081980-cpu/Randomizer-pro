@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Randomizer Pro</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+:root{--a:#2eea84;--b:#0b1510;--p:#102018;--t:#f7fff9;--m:#91a69a}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top,#123d27,#07100c 38%);color:var(--t);font-family:Arial,sans-serif;min-height:100vh}
+.wrap{max-width:1180px;margin:auto;padding:18px}.top{display:flex;justify-content:space-between;gap:12px;align-items:center}.brand{font-size:28px;font-weight:900}.mode{padding:8px 12px;border-radius:999px;background:#163323;color:var(--a);font-weight:900}
+.grid{display:grid;grid-template-columns:340px 1fr;gap:16px;margin-top:16px}.card{background:rgba(10,22,15,.94);border:1px solid #234633;border-radius:22px;padding:16px}
+label{display:block;color:var(--m);font-size:12px;margin:10px 0 5px}input,textarea,select{width:100%;background:#07110c;color:#fff;border:1px solid #294a37;border-radius:12px;padding:11px}
+textarea{min-height:120px}.btn{border:0;border-radius:14px;padding:13px 15px;font-weight:900;cursor:pointer}.primary{background:var(--a);color:#042012}.secondary{background:#17261d;color:#fff;border:1px solid #2b4b38}.danger{background:#3b1619;color:#ffdfe0}.row{display:flex;gap:8px;flex-wrap:wrap}.row>.btn{flex:1}
+.stage{min-height:680px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;position:relative;overflow:hidden}.prize{font-size:18px;color:var(--m)}#number{font-size:clamp(100px,20vw,240px);font-weight:1000;line-height:1;margin:30px 0 4px;text-shadow:0 0 50px rgba(46,234,132,.25)}
+#name{font-size:clamp(28px,5vw,64px);font-weight:900;min-height:70px}#phone{font-size:clamp(18px,3vw,32px);color:var(--a);min-height:40px}.status{margin:12px 0 22px;color:var(--m)}
+.big{font-size:20px;padding:17px 34px}.history{max-height:220px;overflow:auto}.h{padding:8px 0;border-bottom:1px solid #20382a}.small{font-size:12px;color:var(--m)}.hidden{display:none}
+.testbar{position:absolute;top:16px;right:16px;padding:8px 12px;border-radius:999px;font-weight:900;background:#3b3213;color:#ffe172}.live{background:#153822;color:#7dffad}
+table{width:100%;border-collapse:collapse;font-size:12px}td,th{border-bottom:1px solid #254331;padding:7px;text-align:left}
+@media(max-width:850px){.grid{grid-template-columns:1fr}.stage{min-height:610px}.brand{font-size:22px}}
+</style></head>
+<body>
+<div class="wrap">
+<div class="top"><div><div class="brand" id="brand">ЕВфратАвто — Randomizer Pro</div><div class="small" id="subtitle"></div></div><div class="mode" id="modeBadge"></div></div>
+<div class="grid">
+<aside class="card">
+<div id="demoBrand" class="hidden">
+<label>Название компании</label><input id="brandInput" value="Моя компания">
+<label>Название приза</label><input id="prizeInput" value="Главный приз">
+</div>
+<label>Участники</label>
+<textarea id="people" placeholder="001 | Иван Петров | +7 999 111-22-33&#10;002 | Анна | +7 913 000-00-00"></textarea>
+<div class="row"><button class="btn secondary" id="demoBtn">Демо-список</button><button class="btn secondary" id="clearPeople">Очистить</button></div>
+<label>Импорт XLSX / CSV / TXT</label><input type="file" id="file" accept=".xlsx,.xls,.csv,.txt">
+<div id="preview" class="small" style="margin-top:8px"></div>
+<label>Исключить номера/имена</label><input id="exclude" placeholder="например: 4, Иван">
+<div class="row" style="margin-top:12px">
+<button class="btn secondary" id="fullscreen">На весь экран</button>
+<button class="btn secondary" id="resetStage">Сброс экрана</button>
+</div>
+<div id="evControls">
+<label>Режим</label><select id="drawMode"><option value="test">ТЕСТОВЫЙ</option><option value="live">БОЕВОЙ</option></select>
+<button class="btn primary" id="prepare" style="width:100%;margin-top:10px">Подготовить к эфиру 28 сентября</button>
+</div>
+<button class="btn danger" id="wipe" style="width:100%;margin-top:10px">Полностью очистить приложение</button>
+<hr style="border-color:#234633;margin:16px 0">
+<div class="small">История</div><div id="history" class="history"></div>
+<div class="row" style="margin-top:10px"><button class="btn secondary" id="csv">CSV</button><button class="btn secondary" id="json">JSON</button></div>
+</aside>
+<main class="card stage" id="stage">
+<div id="testbar" class="testbar">ТЕСТ</div>
+<div class="prize" id="prize">ЭЛЕКТРОМОПЕД · Розыгрыш 28 сентября</div>
+<div id="number">—</div><div id="name"></div><div id="phone"></div>
+<div class="status" id="status">Готов к розыгрышу</div>
+<div class="row"><button class="btn primary big" id="draw">🎲 РАЗЫГРАТЬ</button><button class="btn secondary big" id="showPhone">Показать телефон</button></div>
+</main>
+</div></div>
+<script>
+const q=new URLSearchParams(location.search), appMode=q.get('mode')==='demo'?'demo':'evfrat';
+const key='rp_'+appMode+'_v1'; let state={people:[],history:[],mode:'test',brand:'Моя компания',prize:'Главный приз',last:null};
+try{state={...state,...JSON.parse(localStorage.getItem(key)||'{}')}}catch(e){}
+const $=id=>document.getElementById(id); const save=()=>localStorage.setItem(key,JSON.stringify(state));
+function parseLines(t){return t.split(/\r?\n/).map((s,i)=>{s=s.trim();if(!s)return null;let p=s.split(/[|;]/).map(x=>x.trim());return{id:p[0]||String(i+1),name:p[1]||'',phone:p[2]||''}}).filter(Boolean)}
+function mask(p){if(!p)return'';let d=p.replace(/\D/g,'');if(d.length<4)return'***';return '+7 *** ***-'+d.slice(-4,-2)+'-'+d.slice(-2)}
+function pool(){let ex=new Set($('exclude').value.split(/[,;\n]+/).map(x=>x.trim().toLowerCase()).filter(Boolean));let won=new Set(state.history.flatMap(h=>h.winners||[]).map(w=>w.key));return state.people.filter(p=>!ex.has(p.id.toLowerCase())&&!ex.has((p.name||'').toLowerCase())&&(state.mode!=='live'||!won.has((p.id+'|'+p.name).toLowerCase())))}
+function rnd(n){let a=new Uint32Array(1),m=0xffffffff-(0xffffffff%n),x;do{crypto.getRandomValues(a);x=a[0]}while(x>=m);return x%n}
+async function hashPool(ps){let s=JSON.stringify(ps.map(p=>[p.id,p.name,p.phone]).sort());let b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
+function render(){ $('people').value=state.people.map(p=>[p.id,p.name,p.phone].filter(Boolean).join(' | ')).join('\n'); $('drawMode').value=state.mode; $('brandInput').value=state.brand;$('prizeInput').value=state.prize;
+if(appMode==='demo'){$('brand').textContent='Randomizer Pro Demo';$('subtitle').textContent='White-label версия для бизнеса';$('demoBrand').classList.remove('hidden');$('evControls').classList.add('hidden');$('prize').textContent=state.prize;$('modeBadge').textContent='DEMO';$('testbar').textContent='DEMO'}else{$('brand').textContent='ЕВфратАвто — Randomizer Pro';$('subtitle').textContent='Розыгрыш 28 сентября';$('prize').textContent='ЭЛЕКТРОМОПЕД · Розыгрыш 28 сентября';$('modeBadge').textContent=state.mode==='live'?'БОЕВОЙ':'ТЕСТ';$('testbar').textContent=state.mode==='live'?'БОЕВОЙ':'ТЕСТ';$('testbar').className='testbar'+(state.mode==='live'?' live':'')}
+$('history').innerHTML=state.history.length?state.history.slice().reverse().map(h=>'<div class=h><b>'+h.winners.map(w=>w.display).join(', ')+'</b><div class=small>'+new Date(h.time).toLocaleString('ru-RU')+' · пул '+h.poolSize+' · '+h.hash.slice(0,10)+'…</div></div>').join(''):'<div class=small>Пока пусто</div>';save()}
+function showLast(full=false){let p=state.last;if(!p){$('number').textContent='—';$('name').textContent='';$('phone').textContent='';return}$('number').textContent=p.id;$('name').textContent=p.name;$('phone').textContent=full?p.phone:mask(p.phone)}
+$('people').oninput=()=>{state.people=parseLines($('people').value);save()}
+$('demoBtn').onclick=()=>{state.people=parseLines('001 | Иван Петров | +7 999 111-22-33\n002 | Анна Смирнова | +7 913 222-33-44\n003 | Сергей Ким | +7 923 555-66-77\n004 | Ольга Иванова | +7 950 888-99-00');render()}
+$('clearPeople').onclick=()=>{state.people=[];render()}
+$('drawMode').onchange=()=>{state.mode=$('drawMode').value;render()}
+$('brandInput').oninput=()=>{state.brand=$('brandInput').value;$('brand').textContent=state.brand+' — Randomizer Pro';save()}
+$('prizeInput').oninput=()=>{state.prize=$('prizeInput').value;$('prize').textContent=state.prize;save()}
+$('file').onchange=async e=>{let f=e.target.files[0];if(!f)return;let rows=[];if(/\.xlsx?$/.test(f.name.toLowerCase())){let wb=XLSX.read(await f.arrayBuffer(),{type:'array'}),sh=wb.Sheets[wb.SheetNames[0]],a=XLSX.utils.sheet_to_json(sh,{header:1,defval:''});let start=0;if(a[0]&&a[0].some(x=>/номер|имя|телефон|фио/i.test(String(x))))start=1;rows=a.slice(start).filter(r=>r.some(Boolean)).map((r,i)=>({id:String(r[0]||i+1),name:String(r[1]||''),phone:String(r[2]||'')}))}else rows=parseLines(await f.text());state.people=rows;$('preview').textContent='Загружено участников: '+rows.length;render()}
+$('draw').onclick=async()=>{let ps=pool();if(!ps.length){$('status').textContent='Нет доступных участников';return}$('status').textContent='Выбираем победителя…';for(let i=3;i>0;i--){$('number').textContent=i;await new Promise(r=>setTimeout(r,500))}let start=Date.now();while(Date.now()-start<1800){let p=ps[rnd(ps.length)];$('number').textContent=p.id;await new Promise(r=>setTimeout(r,65))}let p=ps[rnd(ps.length)];state.last=p;let h=await hashPool(ps);state.history.push({time:new Date().toISOString(),poolSize:ps.length,hash:h,winners:[{key:(p.id+'|'+p.name).toLowerCase(),display:p.id+' · '+p.name,id:p.id,name:p.name,phone:p.phone}]});showLast(false);$('status').textContent='🎉 ПОБЕДИТЕЛЬ!';save();render();showLast(false)}
+$('showPhone').onclick=()=>showLast(true);$('resetStage').onclick=()=>{state.last=null;showLast();$('status').textContent='Готов к розыгрышу';save()}
+$('prepare').onclick=()=>{if(confirm('Очистить тестовую историю и перейти в БОЕВОЙ режим? Участники останутся.')){state.history=[];state.last=null;state.mode='live';render();showLast();$('status').textContent='БОЕВОЙ режим готов'}}
+$('wipe').onclick=()=>{if(confirm('Полностью очистить приложение?')){localStorage.removeItem(key);location.reload()}}
+$('fullscreen').onclick=()=>document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen()
+function dl(n,t,m){let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([t],{type:m}));a.download=n;a.click()}
+$('json').onclick=()=>dl('randomizer-history.json',JSON.stringify(state.history,null,2),'application/json')
+$('csv').onclick=()=>{let r=[['time','pool','winner','name','phone','hash']];state.history.forEach(h=>h.winners.forEach(w=>r.push([h.time,h.poolSize,w.id,w.name,w.phone,h.hash])));dl('randomizer-history.csv','\uFEFF'+r.map(x=>x.map(v=>'"'+String(v).replaceAll('"','""')+'"').join(';')).join('\n'),'text/csv')}
+render();showLast(false)
+</script></body></html>
