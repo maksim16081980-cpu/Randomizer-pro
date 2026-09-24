@@ -79,7 +79,10 @@ label{display:block;color:var(--muted);font-size:12px;margin:9px 0 5px}input,sel
 
       <div class="section">
         <h3>🖥️ Экран</h3>
-        <div class="row"><button class="btn" id="fullscreenBtn">На весь экран</button><button class="btn" id="resetScreen">Сброс экрана</button></div>
+        <label>Время случайного выбора, секунд</label>
+        <input id="drawSeconds" type="number" min="1" max="60" step="1">
+        <div class="muted" style="margin-top:5px">После отсчёта 3–2–1 номера будут меняться указанное время.</div>
+        <div class="row" style="margin-top:10px"><button class="btn" id="fullscreenBtn">На весь экран</button><button class="btn" id="resetScreen">Сброс экрана</button></div>
       </div>
 
       <div class="section">
@@ -134,14 +137,14 @@ const defaults=appMode==='evfrat'?{
  company:'ЕВфратАвто',event:'Розыгрыш 28 сентября 2026',color:'#2eea84',
  prizes:['iPhone','Денежный приз','Подарочный сертификат','ЭЛЕКТРОМОПЕД — главный приз'],
  prizeIndex:0,participants:[],history:[],source:'list',rangeFrom:1,rangeTo:100,
- exclude:'',excludeWinners:true,drawMode:'test',logo:null,last:null
+ exclude:'',excludeWinners:true,drawMode:'test',drawSeconds:5,logo:null,last:null
 }:{
  company:'Моя компания',event:'Розыгрыш призов',color:'#6f7cff',
  prizes:['Приз №1','Приз №2','Главный приз'],prizeIndex:0,participants:[
  {id:'001',name:'Иван Петров',phone:'+7 999 111-22-33',extra:''},
  {id:'002',name:'Анна Смирнова',phone:'+7 913 222-33-44',extra:''},
  {id:'003',name:'Сергей Ким',phone:'+7 923 555-66-77',extra:''}
- ],history:[],source:'list',rangeFrom:1,rangeTo:100,exclude:'',excludeWinners:true,drawMode:'test',logo:null,last:null
+ ],history:[],source:'list',rangeFrom:1,rangeTo:100,exclude:'',excludeWinners:true,drawMode:'test',drawSeconds:5,logo:null,last:null
 };
 let state={...defaults}; try{state={...defaults,...JSON.parse(localStorage.getItem(key)||'{}')}}catch(e){}
 let importRows=[],importHeaders=[];
@@ -171,6 +174,7 @@ function renderParticipants(){
 function renderMode(){
  $('evModeSection').classList.toggle('hidden',appMode!=='evfrat');
  $('drawMode').value=state.drawMode;
+ $('drawSeconds').value=Number(state.drawSeconds)||5;
  $('modePill').textContent=appMode==='sale'?'DEMO / WHITE-LABEL':(state.drawMode==='live'?'БОЕВОЙ':'ТЕСТ');
  $('modePill').className='modepill'+(state.drawMode==='live'?' live':'');
 }
@@ -231,7 +235,8 @@ async function draw(){
  const pool=getPool();if(!pool.length){$('status').textContent='Нет доступных участников';return}
  const prize=currentPrize();state.prizes[state.prizeIndex]=prize;save();$('stagePrize').textContent=prize;$('drawBtn').disabled=true;$('status').textContent='Выбираем победителя…';
  for(let i=3;i>=1;i--){$('winnerNum').textContent=i;beep(500+i*100,.07);await new Promise(r=>setTimeout(r,550))}
- const t=Date.now();while(Date.now()-t<1800){const p=pool[unbiased(pool.length)];$('winnerNum').textContent=p.id;await new Promise(r=>setTimeout(r,55))}
+ const spinMs=Math.max(1,Math.min(60,Number(state.drawSeconds)||5))*1000;
+ const t=Date.now();while(Date.now()-t<spinMs){const p=pool[unbiased(pool.length)];$('winnerNum').textContent=p.id;await new Promise(r=>setTimeout(r,55))}
  const winner=pool[unbiased(pool.length)];state.last={...winner};const hash=await hashPool(pool);state.history.push({time:new Date().toISOString(),prize,poolSize:pool.length,hash,winner:{...winner}});save();showLast(false);$('status').textContent='🎉 ПОБЕДИТЕЛЬ!';confetti();beep(900,.15);renderHistory();$('drawBtn').disabled=false
 }
 function movePrize(delta){if(!state.prizes.length)return;state.prizeIndex=(state.prizeIndex+delta+state.prizes.length)%state.prizes.length;renderPrizes();save();$('status').textContent='Текущий приз: '+currentPrize()}
@@ -255,6 +260,7 @@ document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>$(b.dataset.c
 $('sourceMode').onchange=()=>{state.source=$('sourceMode').value;renderParticipants();save()};$('rangeFrom').oninput=()=>{state.rangeFrom=Number($('rangeFrom').value);save()};$('rangeTo').oninput=()=>{state.rangeTo=Number($('rangeTo').value);save()};$('excludeInput').oninput=()=>{state.exclude=$('excludeInput').value;save()};$('excludeWinners').onchange=()=>{state.excludeWinners=$('excludeWinners').checked;save()};
 $('drawMode').onchange=()=>{state.drawMode=$('drawMode').value;renderMode();save()};
 $('prepareLive').onclick=()=>{if(confirm('Очистить ТЕСТОВУЮ историю и перейти в БОЕВОЙ режим? Участники, призы и настройки сохранятся.')){state.history=[];state.last=null;state.drawMode='live';render();$('status').textContent='БОЕВОЙ режим готов'}};
+$('drawSeconds').oninput=()=>{let v=Math.round(Number($('drawSeconds').value)||5);v=Math.max(1,Math.min(60,v));state.drawSeconds=v;save()};
 $('fullscreenBtn').onclick=togglePresentation;
 $('resetScreen').onclick=()=>{state.last=null;showLast(false);$('status').textContent='Готов к розыгрышу';save()};
 $('drawBtn').onclick=draw;$('revealPhone').onclick=()=>showLast(true);
