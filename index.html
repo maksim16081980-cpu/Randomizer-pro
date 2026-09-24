@@ -1,87 +1,269 @@
 <!doctype html>
 <html lang="ru">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Randomizer Pro</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
-:root{--a:#2eea84;--b:#0b1510;--p:#102018;--t:#f7fff9;--m:#91a69a}
-*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top,#123d27,#07100c 38%);color:var(--t);font-family:Arial,sans-serif;min-height:100vh}
-.wrap{max-width:1180px;margin:auto;padding:18px}.top{display:flex;justify-content:space-between;gap:12px;align-items:center}.brand{font-size:28px;font-weight:900}.mode{padding:8px 12px;border-radius:999px;background:#163323;color:var(--a);font-weight:900}
-.grid{display:grid;grid-template-columns:340px 1fr;gap:16px;margin-top:16px}.card{background:rgba(10,22,15,.94);border:1px solid #234633;border-radius:22px;padding:16px}
-label{display:block;color:var(--m);font-size:12px;margin:10px 0 5px}input,textarea,select{width:100%;background:#07110c;color:#fff;border:1px solid #294a37;border-radius:12px;padding:11px}
-textarea{min-height:120px}.btn{border:0;border-radius:14px;padding:13px 15px;font-weight:900;cursor:pointer}.primary{background:var(--a);color:#042012}.secondary{background:#17261d;color:#fff;border:1px solid #2b4b38}.danger{background:#3b1619;color:#ffdfe0}.row{display:flex;gap:8px;flex-wrap:wrap}.row>.btn{flex:1}
-.stage{min-height:680px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;position:relative;overflow:hidden}.prize{font-size:18px;color:var(--m)}#number{font-size:clamp(100px,20vw,240px);font-weight:1000;line-height:1;margin:30px 0 4px;text-shadow:0 0 50px rgba(46,234,132,.25)}
-#name{font-size:clamp(28px,5vw,64px);font-weight:900;min-height:70px}#phone{font-size:clamp(18px,3vw,32px);color:var(--a);min-height:40px}.status{margin:12px 0 22px;color:var(--m)}
-.big{font-size:20px;padding:17px 34px}.history{max-height:220px;overflow:auto}.h{padding:8px 0;border-bottom:1px solid #20382a}.small{font-size:12px;color:var(--m)}.hidden{display:none}
-.testbar{position:absolute;top:16px;right:16px;padding:8px 12px;border-radius:999px;font-weight:900;background:#3b3213;color:#ffe172}.live{background:#153822;color:#7dffad}
-table{width:100%;border-collapse:collapse;font-size:12px}td,th{border-bottom:1px solid #254331;padding:7px;text-align:left}
-@media(max-width:850px){.grid{grid-template-columns:1fr}.stage{min-height:610px}.brand{font-size:22px}}
-</style></head>
+:root{--accent:#2eea84;--bg:#07100c;--panel:#0c1a12;--panel2:#11251a;--line:#244633;--text:#f5fff8;--muted:#93aa9c;--danger:#ff6b73;--warn:#ffd85a}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:radial-gradient(circle at top,#173d29 0,#08130d 36%,#050a07 100%);color:var(--text);font-family:Inter,Arial,sans-serif}
+button,input,select,textarea{font:inherit}.app{max-width:1320px;margin:auto;padding:16px}
+.top{display:flex;gap:12px;justify-content:space-between;align-items:center;margin-bottom:14px}.brandrow{display:flex;gap:12px;align-items:center}.logo{width:52px;height:52px;border-radius:14px;background:linear-gradient(145deg,var(--accent),#163c28);display:grid;place-items:center;font-weight:1000;color:#04140b;overflow:hidden}.logo img{width:100%;height:100%;object-fit:cover}.brand{font-size:26px;font-weight:1000}.subtitle{color:var(--muted);font-size:13px}.badge{padding:8px 13px;border-radius:999px;background:#183725;color:var(--accent);font-weight:900}
+.layout{display:grid;grid-template-columns:390px 1fr;gap:14px}.panel{background:rgba(10,25,16,.96);border:1px solid var(--line);border-radius:22px;padding:15px}.sidebar{max-height:calc(100vh - 100px);overflow:auto}
+.section{background:#0a1510;border:1px solid #1d3a29;border-radius:16px;padding:13px;margin-bottom:12px}.section h3{margin:0 0 10px;font-size:15px}.muted{color:var(--muted);font-size:12px}
+label{display:block;color:var(--muted);font-size:12px;margin:9px 0 5px}input,select,textarea{width:100%;background:#06100b;color:#fff;border:1px solid #2b503a;border-radius:11px;padding:10px 11px;outline:none}input:focus,select:focus,textarea:focus{border-color:var(--accent)}textarea{min-height:94px;resize:vertical}
+.row{display:flex;gap:8px;flex-wrap:wrap}.row>*{flex:1}.btn{border:0;border-radius:12px;padding:11px 13px;cursor:pointer;font-weight:900;background:#18271f;color:#fff;border:1px solid #2c4a39}.btn:hover{filter:brightness(1.08)}.btn.primary{background:var(--accent);color:#04150c;border-color:transparent}.btn.warn{background:#3a3112;color:#ffe98a}.btn.danger{background:#3b171b;color:#ffdfe2;border-color:#613039}.btn.big{font-size:18px;padding:15px 24px}
+.importbtn{width:100%;padding:16px 14px;font-size:15px;background:linear-gradient(135deg,var(--accent),#1aa762);color:#03180c;border:0;border-radius:14px;font-weight:1000;cursor:pointer}
+.counter{margin-top:9px;padding:10px;border-radius:11px;background:#112b1d;color:#bfffd7;font-weight:900}
+.stage{min-height:720px;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;overflow:hidden;background:radial-gradient(circle at 50% 20%,rgba(46,234,132,.08),transparent 35%),rgba(10,25,16,.96)}
+.stagePrizeLabel{color:var(--muted);font-size:13px;text-transform:uppercase;letter-spacing:1.4px}.stagePrize{font-size:clamp(28px,4vw,60px);font-weight:1000;max-width:900px;margin:8px 0 10px}.winnerNum{font-size:clamp(90px,18vw,230px);font-weight:1000;line-height:.95;text-shadow:0 0 55px rgba(46,234,132,.28)}.winnerName{font-size:clamp(26px,4.5vw,56px);font-weight:900;min-height:66px;margin-top:14px}.winnerPhone{font-size:clamp(18px,2.6vw,30px);color:var(--accent);min-height:38px}.status{color:var(--muted);margin:10px 0 20px}.modepill{position:absolute;top:14px;right:14px;padding:7px 11px;border-radius:999px;background:#453c12;color:#ffea83;font-weight:1000}.modepill.live{background:#143b25;color:#8fffb6}
+.history{max-height:240px;overflow:auto}.hist{padding:9px 0;border-bottom:1px solid #1d3628}.hist b{color:#dfffea}.hist .muted{margin-top:3px}
+.hidden{display:none!important}.modal{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:9999;display:grid;place-items:center;padding:18px}.modalbox{width:min(1050px,96vw);max-height:92vh;overflow:auto;background:#09140e;border:1px solid #2a5038;border-radius:18px;padding:16px}.modalhead{display:flex;justify-content:space-between;align-items:center;gap:10px;position:sticky;top:0;background:#09140e;padding-bottom:10px;z-index:3}table{width:100%;border-collapse:collapse;font-size:12px}th,td{border-bottom:1px solid #203a2b;padding:7px;text-align:left;white-space:nowrap}.previewWrap{overflow:auto;max-height:350px}
+.fullstage .sidebar,.fullstage .top{display:none}.fullstage .layout{display:block}.fullstage .stage{min-height:100vh;border-radius:0;border:0}.fullstage .app{padding:0;max-width:none}
+.confetti{position:fixed;top:-20px;z-index:12000;pointer-events:none;animation:fall 2.8s linear forwards}@keyframes fall{to{transform:translateY(110vh) rotate(720deg);opacity:.7}}
+@media(max-width:900px){.layout{grid-template-columns:1fr}.sidebar{max-height:none}.stage{min-height:650px}.brand{font-size:21px}}
+</style>
+</head>
 <body>
-<div class="wrap">
-<div class="top"><div><div class="brand" id="brand">ЕВфратАвто — Randomizer Pro</div><div class="small" id="subtitle"></div></div><div class="mode" id="modeBadge"></div></div>
-<div class="grid">
-<aside class="card">
-<div id="demoBrand" class="hidden">
-<label>Название компании</label><input id="brandInput" value="Моя компания">
-<label>Название приза</label><input id="prizeInput" value="Главный приз">
+<div class="app" id="appRoot">
+  <div class="top">
+    <div class="brandrow">
+      <div class="logo" id="logoBox">RP</div>
+      <div><div class="brand" id="brandTitle"></div><div class="subtitle" id="eventSubtitle"></div></div>
+    </div>
+    <div class="badge" id="appBadge"></div>
+  </div>
+
+  <div class="layout">
+    <aside class="panel sidebar">
+      <div class="section" id="brandingSection">
+        <h3>⚙️ Настройки компании и розыгрыша</h3>
+        <label>Название компании</label><input id="companyInput">
+        <label>Название акции / события</label><input id="eventInput">
+        <label>Фирменный цвет</label><input id="colorInput" type="color">
+        <label>Логотип</label><input id="logoInput" type="file" accept="image/*">
+        <div class="row" style="margin-top:10px"><button class="btn" id="saveBrand">Применить оформление</button><button class="btn danger" id="removeLogo">Убрать логотип</button></div>
+      </div>
+
+      <div class="section">
+        <h3>🎁 Призы</h3>
+        <label>Список призов — по одному в строке</label>
+        <textarea id="prizesText"></textarea>
+        <button class="btn" id="applyPrizes" style="width:100%">Применить список призов</button>
+        <label>Текущий приз</label>
+        <select id="prizeSelect"></select>
+        <label>Название текущего приза можно изменить вручную</label>
+        <input id="currentPrizeInput">
+        <div class="row" style="margin-top:9px"><button class="btn" id="prevPrize">← Предыдущий</button><button class="btn primary" id="nextPrize">Следующий приз →</button></div>
+      </div>
+
+      <div class="section">
+        <h3>👥 Участники</h3>
+        <button class="importbtn" id="importBtn">📊 ЗАГРУЗИТЬ УЧАСТНИКОВ ИЗ EXCEL / CSV / TXT</button>
+        <input id="fileInput" class="hidden" type="file" accept=".xlsx,.xls,.csv,.txt">
+        <div class="counter" id="participantCounter">Загружено участников: 0</div>
+        <button class="btn" id="viewParticipants" style="width:100%;margin-top:8px">Проверить список участников</button>
+        <label>Источник розыгрыша</label>
+        <select id="sourceMode"><option value="list">Список участников</option><option value="range">Диапазон чисел</option></select>
+        <div id="rangeFields" class="hidden"><div class="row"><div><label>От</label><input id="rangeFrom" type="number"></div><div><label>До</label><input id="rangeTo" type="number"></div></div></div>
+        <label>Исключения: номер или имя, через запятую</label><input id="excludeInput">
+        <label style="display:flex;gap:8px;align-items:center"><input id="excludeWinners" type="checkbox" style="width:auto"> Не допускать повторных победителей</label>
+      </div>
+
+      <div class="section" id="evModeSection">
+        <h3>🎬 Режим эфира</h3>
+        <select id="drawMode"><option value="test">ТЕСТОВЫЙ</option><option value="live">БОЕВОЙ</option></select>
+        <button class="btn warn" id="prepareLive" style="width:100%;margin-top:9px">Подготовить к эфиру 28 сентября</button>
+      </div>
+
+      <div class="section">
+        <h3>🖥️ Экран</h3>
+        <div class="row"><button class="btn" id="fullscreenBtn">На весь экран</button><button class="btn" id="resetScreen">Сброс экрана</button></div>
+      </div>
+
+      <div class="section">
+        <h3>📜 История</h3>
+        <div class="history" id="history"></div>
+        <div class="row" style="margin-top:9px"><button class="btn" id="exportCsv">CSV</button><button class="btn" id="exportJson">JSON</button></div>
+        <button class="btn danger" id="clearHistory" style="width:100%;margin-top:8px">Очистить историю</button>
+      </div>
+    </aside>
+
+    <main class="panel stage" id="stage">
+      <div class="modepill" id="modePill"></div>
+      <div class="stagePrizeLabel">Сейчас разыгрываем</div>
+      <div class="stagePrize" id="stagePrize"></div>
+      <div class="winnerNum" id="winnerNum">—</div>
+      <div class="winnerName" id="winnerName"></div>
+      <div class="winnerPhone" id="winnerPhone"></div>
+      <div class="status" id="status">Готов к розыгрышу</div>
+      <div class="row" style="justify-content:center;max-width:720px;width:100%">
+        <button class="btn primary big" id="drawBtn">🎲 РАЗЫГРАТЬ</button>
+        <button class="btn big" id="revealPhone">Показать телефон</button>
+        <button class="btn big" id="nextPrizeStage">Следующий приз →</button>
+      </div>
+    </main>
+  </div>
 </div>
-<label>Участники</label>
-<textarea id="people" placeholder="001 | Иван Петров | +7 999 111-22-33&#10;002 | Анна | +7 913 000-00-00"></textarea>
-<div class="row"><button class="btn secondary" id="demoBtn">Демо-список</button><button class="btn secondary" id="clearPeople">Очистить</button></div>
-<label>Импорт XLSX / CSV / TXT</label><input type="file" id="file" accept=".xlsx,.xls,.csv,.txt">
-<div id="preview" class="small" style="margin-top:8px"></div>
-<label>Исключить номера/имена</label><input id="exclude" placeholder="например: 4, Иван">
-<div class="row" style="margin-top:12px">
-<button class="btn secondary" id="fullscreen">На весь экран</button>
-<button class="btn secondary" id="resetStage">Сброс экрана</button>
-</div>
-<div id="evControls">
-<label>Режим</label><select id="drawMode"><option value="test">ТЕСТОВЫЙ</option><option value="live">БОЕВОЙ</option></select>
-<button class="btn primary" id="prepare" style="width:100%;margin-top:10px">Подготовить к эфиру 28 сентября</button>
-</div>
-<button class="btn danger" id="wipe" style="width:100%;margin-top:10px">Полностью очистить приложение</button>
-<hr style="border-color:#234633;margin:16px 0">
-<div class="small">История</div><div id="history" class="history"></div>
-<div class="row" style="margin-top:10px"><button class="btn secondary" id="csv">CSV</button><button class="btn secondary" id="json">JSON</button></div>
-</aside>
-<main class="card stage" id="stage">
-<div id="testbar" class="testbar">ТЕСТ</div>
-<div class="prize" id="prize">ЭЛЕКТРОМОПЕД · Розыгрыш 28 сентября</div>
-<div id="number">—</div><div id="name"></div><div id="phone"></div>
-<div class="status" id="status">Готов к розыгрышу</div>
-<div class="row"><button class="btn primary big" id="draw">🎲 РАЗЫГРАТЬ</button><button class="btn secondary big" id="showPhone">Показать телефон</button></div>
-</main>
+
+<div class="modal hidden" id="importModal"><div class="modalbox">
+  <div class="modalhead"><div><h2 style="margin:0">Импорт участников</h2><div class="muted">Проверь колонки перед загрузкой</div></div><button class="btn" data-close="importModal">✕</button></div>
+  <div class="row">
+    <div><label>Номер</label><select id="mapNumber"></select></div>
+    <div><label>Имя / ФИО</label><select id="mapName"></select></div>
+    <div><label>Телефон</label><select id="mapPhone"></select></div>
+    <div><label>Доп. информация</label><select id="mapExtra"></select></div>
+  </div>
+  <div class="previewWrap" style="margin-top:12px"><table id="previewTable"></table></div>
+  <div class="row" style="margin-top:12px"><button class="btn primary" id="applyImport">Применить импорт</button><button class="btn" data-close="importModal">Отмена</button></div>
 </div></div>
+
+<div class="modal hidden" id="participantsModal"><div class="modalbox">
+  <div class="modalhead"><div><h2 style="margin:0">Участники</h2><div class="muted" id="participantsSummary"></div></div><button class="btn" data-close="participantsModal">✕</button></div>
+  <div class="previewWrap"><table id="participantsTable"></table></div>
+</div></div>
+
 <script>
-const q=new URLSearchParams(location.search), appMode=q.get('mode')==='demo'?'demo':'evfrat';
-const key='rp_'+appMode+'_v1'; let state={people:[],history:[],mode:'test',brand:'Моя компания',prize:'Главный приз',last:null};
-try{state={...state,...JSON.parse(localStorage.getItem(key)||'{}')}}catch(e){}
-const $=id=>document.getElementById(id); const save=()=>localStorage.setItem(key,JSON.stringify(state));
-function parseLines(t){return t.split(/\r?\n/).map((s,i)=>{s=s.trim();if(!s)return null;let p=s.split(/[|;]/).map(x=>x.trim());return{id:p[0]||String(i+1),name:p[1]||'',phone:p[2]||''}}).filter(Boolean)}
-function mask(p){if(!p)return'';let d=p.replace(/\D/g,'');if(d.length<4)return'***';return '+7 *** ***-'+d.slice(-4,-2)+'-'+d.slice(-2)}
-function pool(){let ex=new Set($('exclude').value.split(/[,;\n]+/).map(x=>x.trim().toLowerCase()).filter(Boolean));let won=new Set(state.history.flatMap(h=>h.winners||[]).map(w=>w.key));return state.people.filter(p=>!ex.has(p.id.toLowerCase())&&!ex.has((p.name||'').toLowerCase())&&(state.mode!=='live'||!won.has((p.id+'|'+p.name).toLowerCase())))}
-function rnd(n){let a=new Uint32Array(1),m=0xffffffff-(0xffffffff%n),x;do{crypto.getRandomValues(a);x=a[0]}while(x>=m);return x%n}
-async function hashPool(ps){let s=JSON.stringify(ps.map(p=>[p.id,p.name,p.phone]).sort());let b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
-function render(){ $('people').value=state.people.map(p=>[p.id,p.name,p.phone].filter(Boolean).join(' | ')).join('\n'); $('drawMode').value=state.mode; $('brandInput').value=state.brand;$('prizeInput').value=state.prize;
-if(appMode==='demo'){$('brand').textContent='Randomizer Pro Demo';$('subtitle').textContent='White-label версия для бизнеса';$('demoBrand').classList.remove('hidden');$('evControls').classList.add('hidden');$('prize').textContent=state.prize;$('modeBadge').textContent='DEMO';$('testbar').textContent='DEMO'}else{$('brand').textContent='ЕВфратАвто — Randomizer Pro';$('subtitle').textContent='Розыгрыш 28 сентября';$('prize').textContent='ЭЛЕКТРОМОПЕД · Розыгрыш 28 сентября';$('modeBadge').textContent=state.mode==='live'?'БОЕВОЙ':'ТЕСТ';$('testbar').textContent=state.mode==='live'?'БОЕВОЙ':'ТЕСТ';$('testbar').className='testbar'+(state.mode==='live'?' live':'')}
-$('history').innerHTML=state.history.length?state.history.slice().reverse().map(h=>'<div class=h><b>'+h.winners.map(w=>w.display).join(', ')+'</b><div class=small>'+new Date(h.time).toLocaleString('ru-RU')+' · пул '+h.poolSize+' · '+h.hash.slice(0,10)+'…</div></div>').join(''):'<div class=small>Пока пусто</div>';save()}
-function showLast(full=false){let p=state.last;if(!p){$('number').textContent='—';$('name').textContent='';$('phone').textContent='';return}$('number').textContent=p.id;$('name').textContent=p.name;$('phone').textContent=full?p.phone:mask(p.phone)}
-$('people').oninput=()=>{state.people=parseLines($('people').value);save()}
-$('demoBtn').onclick=()=>{state.people=parseLines('001 | Иван Петров | +7 999 111-22-33\n002 | Анна Смирнова | +7 913 222-33-44\n003 | Сергей Ким | +7 923 555-66-77\n004 | Ольга Иванова | +7 950 888-99-00');render()}
-$('clearPeople').onclick=()=>{state.people=[];render()}
-$('drawMode').onchange=()=>{state.mode=$('drawMode').value;render()}
-$('brandInput').oninput=()=>{state.brand=$('brandInput').value;$('brand').textContent=state.brand+' — Randomizer Pro';save()}
-$('prizeInput').oninput=()=>{state.prize=$('prizeInput').value;$('prize').textContent=state.prize;save()}
-$('file').onchange=async e=>{let f=e.target.files[0];if(!f)return;let rows=[];if(/\.xlsx?$/.test(f.name.toLowerCase())){let wb=XLSX.read(await f.arrayBuffer(),{type:'array'}),sh=wb.Sheets[wb.SheetNames[0]],a=XLSX.utils.sheet_to_json(sh,{header:1,defval:''});let start=0;if(a[0]&&a[0].some(x=>/номер|имя|телефон|фио/i.test(String(x))))start=1;rows=a.slice(start).filter(r=>r.some(Boolean)).map((r,i)=>({id:String(r[0]||i+1),name:String(r[1]||''),phone:String(r[2]||'')}))}else rows=parseLines(await f.text());state.people=rows;$('preview').textContent='Загружено участников: '+rows.length;render()}
-$('draw').onclick=async()=>{let ps=pool();if(!ps.length){$('status').textContent='Нет доступных участников';return}$('status').textContent='Выбираем победителя…';for(let i=3;i>0;i--){$('number').textContent=i;await new Promise(r=>setTimeout(r,500))}let start=Date.now();while(Date.now()-start<1800){let p=ps[rnd(ps.length)];$('number').textContent=p.id;await new Promise(r=>setTimeout(r,65))}let p=ps[rnd(ps.length)];state.last=p;let h=await hashPool(ps);state.history.push({time:new Date().toISOString(),poolSize:ps.length,hash:h,winners:[{key:(p.id+'|'+p.name).toLowerCase(),display:p.id+' · '+p.name,id:p.id,name:p.name,phone:p.phone}]});showLast(false);$('status').textContent='🎉 ПОБЕДИТЕЛЬ!';save();render();showLast(false)}
-$('showPhone').onclick=()=>showLast(true);$('resetStage').onclick=()=>{state.last=null;showLast();$('status').textContent='Готов к розыгрышу';save()}
-$('prepare').onclick=()=>{if(confirm('Очистить тестовую историю и перейти в БОЕВОЙ режим? Участники останутся.')){state.history=[];state.last=null;state.mode='live';render();showLast();$('status').textContent='БОЕВОЙ режим готов'}}
-$('wipe').onclick=()=>{if(confirm('Полностью очистить приложение?')){localStorage.removeItem(key);location.reload()}}
-$('fullscreen').onclick=()=>document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen()
-function dl(n,t,m){let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([t],{type:m}));a.download=n;a.click()}
-$('json').onclick=()=>dl('randomizer-history.json',JSON.stringify(state.history,null,2),'application/json')
-$('csv').onclick=()=>{let r=[['time','pool','winner','name','phone','hash']];state.history.forEach(h=>h.winners.forEach(w=>r.push([h.time,h.poolSize,w.id,w.name,w.phone,h.hash])));dl('randomizer-history.csv','\uFEFF'+r.map(x=>x.map(v=>'"'+String(v).replaceAll('"','""')+'"').join(';')).join('\n'),'text/csv')}
-render();showLast(false)
-</script></body></html>
+(()=>{
+const $=id=>document.getElementById(id);
+const url=new URL(location.href);
+const appMode=(url.searchParams.get('mode')||'evfrat').toLowerCase()==='sale'?'sale':((url.searchParams.get('mode')||'evfrat').toLowerCase()==='demo'?'sale':'evfrat');
+const key='randomizer_pro_'+appMode+'_v4';
+const defaults=appMode==='evfrat'?{
+ company:'ЕВфратАвто',event:'Розыгрыш 28 сентября 2026',color:'#2eea84',
+ prizes:['iPhone','Денежный приз','Подарочный сертификат','ЭЛЕКТРОМОПЕД — главный приз'],
+ prizeIndex:0,participants:[],history:[],source:'list',rangeFrom:1,rangeTo:100,
+ exclude:'',excludeWinners:true,drawMode:'test',logo:null,last:null
+}:{
+ company:'Моя компания',event:'Розыгрыш призов',color:'#6f7cff',
+ prizes:['Приз №1','Приз №2','Главный приз'],prizeIndex:0,participants:[
+ {id:'001',name:'Иван Петров',phone:'+7 999 111-22-33',extra:''},
+ {id:'002',name:'Анна Смирнова',phone:'+7 913 222-33-44',extra:''},
+ {id:'003',name:'Сергей Ким',phone:'+7 923 555-66-77',extra:''}
+ ],history:[],source:'list',rangeFrom:1,rangeTo:100,exclude:'',excludeWinners:true,drawMode:'test',logo:null,last:null
+};
+let state={...defaults}; try{state={...defaults,...JSON.parse(localStorage.getItem(key)||'{}')}}catch(e){}
+let importRows=[],importHeaders=[];
+const save=()=>localStorage.setItem(key,JSON.stringify(state));
+const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+const maskPhone=p=>{if(!p)return'';const d=String(p).replace(/\D/g,'');if(d.length<4)return'***';return '+7 *** ***-'+d.slice(-4,-2)+'-'+d.slice(-2)};
+function currentPrize(){return ($('currentPrizeInput').value||state.prizes[state.prizeIndex]||'Приз').trim()}
+function setColor(c){document.documentElement.style.setProperty('--accent',c||'#2eea84')}
+function renderBrand(){
+ setColor(state.color);$('brandTitle').textContent=state.company+' — Randomizer Pro';$('eventSubtitle').textContent=state.event;
+ $('companyInput').value=state.company;$('eventInput').value=state.event;$('colorInput').value=state.color;
+ $('appBadge').textContent=appMode==='evfrat'?'ЕВфратАвто':'WHITE-LABEL / DEMO';
+ $('brandingSection').querySelector('h3').textContent=appMode==='evfrat'?'⚙️ Настройки розыгрыша':'⚙️ White-label настройки';
+ if(state.logo){$('logoBox').innerHTML='<img src="'+state.logo+'" alt="">'}else{$('logoBox').textContent=appMode==='evfrat'?'ЕА':'RP'}
+}
+function renderPrizes(){
+ $('prizesText').value=state.prizes.join('\n');$('prizeSelect').innerHTML=state.prizes.map((p,i)=>'<option value="'+i+'">'+esc((i+1)+'. '+p)+'</option>').join('');
+ if(!state.prizes.length){state.prizes=['Приз'];state.prizeIndex=0}
+ if(state.prizeIndex>=state.prizes.length)state.prizeIndex=0;
+ $('prizeSelect').value=String(state.prizeIndex);$('currentPrizeInput').value=state.prizes[state.prizeIndex]||'Приз';$('stagePrize').textContent=currentPrize();
+}
+function renderParticipants(){
+ $('participantCounter').textContent='Загружено участников: '+state.participants.length;
+ $('sourceMode').value=state.source;$('rangeFields').classList.toggle('hidden',state.source!=='range');
+ $('rangeFrom').value=state.rangeFrom;$('rangeTo').value=state.rangeTo;$('excludeInput').value=state.exclude;$('excludeWinners').checked=state.excludeWinners;
+}
+function renderMode(){
+ $('evModeSection').classList.toggle('hidden',appMode!=='evfrat');
+ $('drawMode').value=state.drawMode;
+ $('modePill').textContent=appMode==='sale'?'DEMO / WHITE-LABEL':(state.drawMode==='live'?'БОЕВОЙ':'ТЕСТ');
+ $('modePill').className='modepill'+(state.drawMode==='live'?' live':'');
+}
+function renderHistory(){
+ $('history').innerHTML=state.history.length?state.history.slice().reverse().map(h=>'<div class="hist"><b>'+esc(h.prize)+' → '+esc(h.winner.id)+' · '+esc(h.winner.name||'')+'</b><div class="muted">'+new Date(h.time).toLocaleString('ru-RU')+' · пул '+h.poolSize+' · '+(h.hash||'').slice(0,10)+'…</div></div>').join(''):'<div class="muted">Пока пусто</div>'
+}
+function showLast(full=false){
+ const p=state.last;if(!p){$('winnerNum').textContent='—';$('winnerName').textContent='';$('winnerPhone').textContent='';return}
+ $('winnerNum').textContent=p.id;$('winnerName').textContent=p.name||'';$('winnerPhone').textContent=full?(p.phone||''):maskPhone(p.phone||'')
+}
+function render(){renderBrand();renderPrizes();renderParticipants();renderMode();renderHistory();showLast(false);save()}
+function parseDelimited(text){
+ const lines=text.split(/\r?\n/).filter(x=>x.trim());if(!lines.length)return {headers:[],rows:[]};
+ const sep=lines[0].includes(';')?';':(lines[0].includes('\t')?'\t':(lines[0].includes(',')?',':'|'));
+ const arr=lines.map(l=>l.split(sep).map(x=>x.trim().replace(/^"|"$/g,'')));
+ let first=arr[0],hasHeader=first.some(x=>/номер|ticket|id|имя|фио|name|телефон|phone|доп|extra/i.test(x));
+ return {headers:hasHeader?first:first.map((_,i)=>'Колонка '+(i+1)),rows:hasHeader?arr.slice(1):arr}
+}
+function guess(headers,re,def=-1){const i=headers.findIndex(h=>re.test(String(h)));return i>=0?i:def}
+function options(sel,headers,idx,allowNone=false){
+ sel.innerHTML=(allowNone?'<option value="-1">— не использовать —</option>':'')+headers.map((h,i)=>'<option value="'+i+'">'+esc(h||('Колонка '+(i+1)))+'</option>').join('');sel.value=String(idx)
+}
+function openImport(headers,rows){
+ importHeaders=headers;importRows=rows;
+ options($('mapNumber'),headers,guess(headers,/номер|ticket|id|№/i,0));
+ options($('mapName'),headers,guess(headers,/имя|фио|name/i,Math.min(1,headers.length-1)),true);
+ options($('mapPhone'),headers,guess(headers,/телефон|phone|mobile|tel/i,Math.min(2,headers.length-1)),true);
+ options($('mapExtra'),headers,guess(headers,/доп|extra|коммент|note/i,-1),true);
+ $('previewTable').innerHTML='<tr>'+headers.map(h=>'<th>'+esc(h)+'</th>').join('')+'</tr>'+rows.slice(0,10).map(r=>'<tr>'+headers.map((_,i)=>'<td>'+esc(r[i]??'')+'</td>').join('')+'</tr>').join('');
+ $('importModal').classList.remove('hidden')
+}
+async function handleFile(file){
+ if(!file)return;
+ try{
+  if(/\.xlsx?$/i.test(file.name)){
+   if(!window.XLSX)throw new Error('Библиотека Excel не загрузилась. Проверь интернет.');
+   const wb=XLSX.read(await file.arrayBuffer(),{type:'array'}),sh=wb.Sheets[wb.SheetNames[0]],arr=XLSX.utils.sheet_to_json(sh,{header:1,defval:''});
+   if(!arr.length)throw new Error('Таблица пустая');
+   const first=arr[0].map(String),hasHeader=first.some(x=>/номер|ticket|id|имя|фио|name|телефон|phone|доп|extra/i.test(x));
+   openImport(hasHeader?first:first.map((_,i)=>'Колонка '+(i+1)),hasHeader?arr.slice(1):arr);
+  }else{const p=parseDelimited(await file.text());openImport(p.headers,p.rows)}
+ }catch(e){alert('Не удалось прочитать файл: '+e.message)}
+}
+function unbiased(n){if(n<=0)return 0;const max=0x100000000-(0x100000000%n),a=new Uint32Array(1);let x;do{crypto.getRandomValues(a);x=a[0]}while(x>=max);return x%n}
+async function hashPool(ps){const data=JSON.stringify(ps.map(p=>[p.id,p.name,p.phone,p.extra]).sort());const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(data));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
+function getPool(){
+ let ps;
+ if(state.source==='range'){ps=[];for(let i=Number(state.rangeFrom);i<=Number(state.rangeTo);i++)ps.push({id:String(i),name:'',phone:'',extra:''})}
+ else ps=state.participants.slice();
+ const ex=new Set(String(state.exclude||'').split(/[,;\n]+/).map(x=>x.trim().toLowerCase()).filter(Boolean));
+ ps=ps.filter(p=>!ex.has(String(p.id).toLowerCase())&&!ex.has(String(p.name||'').toLowerCase()));
+ if(state.excludeWinners){const won=new Set(state.history.map(h=>String(h.winner.id).toLowerCase()));ps=ps.filter(p=>!won.has(String(p.id).toLowerCase()))}
+ return ps
+}
+function beep(freq=700,dur=.08){try{const A=window.AudioContext||window.webkitAudioContext,o=new A(),s=o.createOscillator(),g=o.createGain();s.frequency.value=freq;g.gain.value=.05;s.connect(g);g.connect(o.destination);s.start();setTimeout(()=>{s.stop();o.close()},dur*1000)}catch(e){}}
+function confetti(){for(let i=0;i<45;i++){const e=document.createElement('div');e.className='confetti';e.textContent=['●','■','◆','★'][unbiased(4)];e.style.left=unbiased(100)+'vw';e.style.color=['#2eea84','#ffd85a','#ff6b73','#75a7ff'][unbiased(4)];e.style.fontSize=(12+unbiased(18))+'px';e.style.animationDelay=(unbiased(500)/1000)+'s';document.body.appendChild(e);setTimeout(()=>e.remove(),3500)}}
+async function draw(){
+ const pool=getPool();if(!pool.length){$('status').textContent='Нет доступных участников';return}
+ const prize=currentPrize();state.prizes[state.prizeIndex]=prize;save();$('stagePrize').textContent=prize;$('drawBtn').disabled=true;$('status').textContent='Выбираем победителя…';
+ for(let i=3;i>=1;i--){$('winnerNum').textContent=i;beep(500+i*100,.07);await new Promise(r=>setTimeout(r,550))}
+ const t=Date.now();while(Date.now()-t<1800){const p=pool[unbiased(pool.length)];$('winnerNum').textContent=p.id;await new Promise(r=>setTimeout(r,55))}
+ const winner=pool[unbiased(pool.length)];state.last={...winner};const hash=await hashPool(pool);state.history.push({time:new Date().toISOString(),prize,poolSize:pool.length,hash,winner:{...winner}});save();showLast(false);$('status').textContent='🎉 ПОБЕДИТЕЛЬ!';confetti();beep(900,.15);renderHistory();$('drawBtn').disabled=false
+}
+function movePrize(delta){if(!state.prizes.length)return;state.prizeIndex=(state.prizeIndex+delta+state.prizes.length)%state.prizes.length;renderPrizes();save();$('status').textContent='Текущий приз: '+currentPrize()}
+function download(name,text,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500)}
+function togglePresentation(){
+ const root=$('appRoot'),on=!root.classList.contains('fullstage');root.classList.toggle('fullstage',on);$('fullscreenBtn').textContent=on?'Выйти из полного экрана':'На весь экран';
+ if(on&&document.documentElement.requestFullscreen){document.documentElement.requestFullscreen().catch(()=>{})}
+ else if(!on&&document.fullscreenElement&&document.exitFullscreen){document.exitFullscreen().catch(()=>{})}
+}
+$('saveBrand').onclick=()=>{state.company=$('companyInput').value.trim()||'Компания';state.event=$('eventInput').value.trim()||'Розыгрыш';state.color=$('colorInput').value;renderBrand();save()};
+$('logoInput').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{state.logo=r.result;renderBrand();save()};r.readAsDataURL(f)};
+$('removeLogo').onclick=()=>{state.logo=null;renderBrand();save()};
+$('applyPrizes').onclick=()=>{const arr=$('prizesText').value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);if(!arr.length)return alert('Добавь хотя бы один приз');state.prizes=arr;state.prizeIndex=Math.min(state.prizeIndex,arr.length-1);renderPrizes();save()};
+$('prizeSelect').onchange=()=>{state.prizeIndex=Number($('prizeSelect').value);renderPrizes();save()};
+$('currentPrizeInput').oninput=()=>{$('stagePrize').textContent=currentPrize()};
+$('prevPrize').onclick=()=>movePrize(-1);$('nextPrize').onclick=()=>movePrize(1);$('nextPrizeStage').onclick=()=>movePrize(1);
+$('importBtn').onclick=()=>{$('fileInput').value='';$('fileInput').click()};$('fileInput').onchange=e=>handleFile(e.target.files[0]);
+$('applyImport').onclick=()=>{const n=Number($('mapNumber').value),nm=Number($('mapName').value),ph=Number($('mapPhone').value),ex=Number($('mapExtra').value);state.participants=importRows.filter(r=>String(r[n]??'').trim()).map((r,i)=>({id:String(r[n]??(i+1)).trim(),name:nm>=0?String(r[nm]??'').trim():'',phone:ph>=0?String(r[ph]??'').trim():'',extra:ex>=0?String(r[ex]??'').trim():''}));state.source='list';$('importModal').classList.add('hidden');renderParticipants();save();$('status').textContent='Загружено участников: '+state.participants.length};
+$('viewParticipants').onclick=()=>{$('participantsSummary').textContent='Всего: '+state.participants.length;$('participantsTable').innerHTML='<tr><th>Номер</th><th>Имя / ФИО</th><th>Телефон</th><th>Доп.</th></tr>'+state.participants.map(p=>'<tr><td>'+esc(p.id)+'</td><td>'+esc(p.name)+'</td><td>'+esc(p.phone)+'</td><td>'+esc(p.extra)+'</td></tr>').join('');$('participantsModal').classList.remove('hidden')};
+document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>$(b.dataset.close).classList.add('hidden'));
+$('sourceMode').onchange=()=>{state.source=$('sourceMode').value;renderParticipants();save()};$('rangeFrom').oninput=()=>{state.rangeFrom=Number($('rangeFrom').value);save()};$('rangeTo').oninput=()=>{state.rangeTo=Number($('rangeTo').value);save()};$('excludeInput').oninput=()=>{state.exclude=$('excludeInput').value;save()};$('excludeWinners').onchange=()=>{state.excludeWinners=$('excludeWinners').checked;save()};
+$('drawMode').onchange=()=>{state.drawMode=$('drawMode').value;renderMode();save()};
+$('prepareLive').onclick=()=>{if(confirm('Очистить ТЕСТОВУЮ историю и перейти в БОЕВОЙ режим? Участники, призы и настройки сохранятся.')){state.history=[];state.last=null;state.drawMode='live';render();$('status').textContent='БОЕВОЙ режим готов'}};
+$('fullscreenBtn').onclick=togglePresentation;
+$('resetScreen').onclick=()=>{state.last=null;showLast(false);$('status').textContent='Готов к розыгрышу';save()};
+$('drawBtn').onclick=draw;$('revealPhone').onclick=()=>showLast(true);
+$('clearHistory').onclick=()=>{if(confirm('Очистить историю победителей?')){state.history=[];state.last=null;renderHistory();showLast(false);save()}};
+$('exportJson').onclick=()=>download('randomizer-history.json',JSON.stringify(state.history,null,2),'application/json');
+$('exportCsv').onclick=()=>{const rows=[['Дата','Приз','Номер','Имя','Телефон','Пул','SHA-256']];state.history.forEach(h=>rows.push([h.time,h.prize,h.winner.id,h.winner.name,h.winner.phone,h.poolSize,h.hash]));download('randomizer-history.csv','\uFEFF'+rows.map(r=>r.map(v=>'"'+String(v??'').replaceAll('"','""')+'"').join(';')).join('\n'),'text/csv')};
+document.addEventListener('fullscreenchange',()=>{if(!document.fullscreenElement&&$('appRoot').classList.contains('fullstage')){$('appRoot').classList.remove('fullstage');$('fullscreenBtn').textContent='На весь экран'}});
+render();
+})();
+</script>
+</body>
+</html>
